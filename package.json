@@ -1,0 +1,25 @@
+{
+  "name": "my-js-bundle",
+  "version": "0.0.1",
+  "description": "A homemade js bundle builder",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/OldDream/my-js-bundle.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/OldDream/my-js-bundle/issues"
+  },
+  "homepage": "https://github.com/OldDream/my-js-bundle#readme",
+  "dependencies": {
+    "@babel/core": "^7.11.6",
+    "@babel/parser": "^7.11.5",
+    "@babel/preset-env": "^7.11.5",
+    "@babel/traverse": "^7.11.5"
+  }
+}
