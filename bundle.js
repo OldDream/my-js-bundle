@@ -46,6 +46,7 @@ const parseModules = (filePath) => {
     }
   }
 
+  // 整理依赖格式
   const depsMap = {};
   tempArr.forEach((moduleInfo) => {
     depsMap[moduleInfo.filePath] = {
@@ -53,7 +54,6 @@ const parseModules = (filePath) => {
       code: moduleInfo.code,
     };
   });
-
   console.log(depsMap)
   return depsMap
 };
