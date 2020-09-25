@@ -17,12 +17,12 @@ const getModuleInfo = (filePath) => {
   });
 
   // 遍历AST
-  const deps = new Map(); // 用于收集依赖的 hashMap
+  const deps = {}; // 用于收集依赖的 hashMap
   const ImportDeclaration = ({ node }) => {
     // 在 AST 中处理 import 声明所需方法
     const dirname = path.dirname(filePath);
     const abspath = './' + path.join(dirname, node.source.value); // 获取相对bundle所在位置的路径
-    deps.set(node.source.value, abspath);
+    deps[node.source.value] = abspath;
   };
   traverse(ast, { ImportDeclaration }); // 启动遍历
 
@@ -39,23 +39,48 @@ const parseModules = (filePath) => {
 
   for (let index = 0; index < tempArr.length; index++) {
     const deps = tempArr[index].deps;
-    if (deps.size > 0) {
-      deps.forEach((value) => {
-        tempArr.push(getModuleInfo(value)); // 不断延长 tempArr ,每个元素的deps，都会被压进 tempArr
-      });
-    }
+      for (const key in deps) {
+        if (deps.hasOwnProperty(key)) {
+          tempArr.push(getModuleInfo(deps[key])); // 不断延长 tempArr ,每个元素的deps，都会被压进 tempArr
+        }
+      }
   }
 
   // 整理依赖格式
   const depsMap = {};
   tempArr.forEach((moduleInfo) => {
     depsMap[moduleInfo.filePath] = {
-      deps: moduleInfo.deps,
-      code: moduleInfo.code,
+      // filePath 相对打包程序所在的路径
+      deps: moduleInfo.deps, // 它所依赖的
+      code: moduleInfo.code, // 它的代码
     };
   });
   console.log(depsMap)
   return depsMap
 };
 
-parseModules('./demo/index.js');
+// 创建打包后文件
+const bundle = (filePath) => {
+  const depsMap = JSON.stringify(parseModules(filePath));
+  return `
+  (function (depsMap) {
+    function require(filePath) {
+      function absRequire(realtivePath) {
+        // import中使用的相对文件的路径，转换为相对打包程序所在的路径
+        return require(depsMap[filePath].deps[realtivePath]);
+      }
+      var exports = {}; // babel 转换过的 export 会往这上面加属性
+      (function (code, require, exports) {
+        eval(code); // 执行模块中code部分的代码，参考上面 depsMap
+      })(depsMap[filePath].code, absRequire, exports);
+      return exports;
+    }
+    require('${filePath}');
+  })(${depsMap});
+  `;
+};
+
+const content = bundle('./demo/index.js');
+fs.mkdirSync('./dist');
+fs.writeFileSync('./dist/index.js', content);
+

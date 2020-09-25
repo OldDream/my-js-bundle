@@ -1,5 +1,5 @@
 const printer = val => {
-  console.log(vals)
+  console.log(val)
 }
 
 export default printer
